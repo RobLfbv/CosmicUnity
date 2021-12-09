@@ -10,8 +10,9 @@ public class PlayerMovement : MonoBehaviour
     float jumpForce;
     Rigidbody2D rb;
     float maxJump = 1.8f;
+    float minJump = 1.3f;
     float distToGround;
-    bool isGrounded;
+    bool isFallingBool;
 
     void Start(){
         rb = this.gameObject.GetComponent<Rigidbody2D>();
@@ -22,7 +23,6 @@ public class PlayerMovement : MonoBehaviour
     {
         if(Input.GetKey(KeyCode.Space) || Input.GetKey(KeyCode.Z)){
             charger += Time.deltaTime;
-            Debug.Log(charger);
         }
 
         if(Input.GetKeyUp(KeyCode.Space) ||Input.GetKeyUp(KeyCode.Z)){
@@ -33,9 +33,13 @@ public class PlayerMovement : MonoBehaviour
 
     void FixedUpdate(){
         littleJack();
+        isFalling();
         if(discharge){
             if(charger>maxJump){
                 charger = maxJump;
+            }
+            if(charger<minJump){
+                charger = minJump;
             }
             jumpForce = 10 * charger;
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
@@ -43,16 +47,19 @@ public class PlayerMovement : MonoBehaviour
             discharge = false;
             charger = 0f;
         }
-
-        if(!isGrounded && (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.Q) || Input.GetKeyDown(KeyCode.D))){
+        if((Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.Q) || Input.GetKey(KeyCode.D)) && isFallingBool){
             rb.gravityScale = 0.5f;
-            Debug.Log("Hello");
+        }else{
+            rb.gravityScale = 2f;
         }
+
     }
 
     void littleJack(){
         if(Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow)){
             transform.localScale = new Vector3(transform.localScale.x, 0.25f, transform.localScale.z);
+            rb.gravityScale = 3f;
+            Debug.Log(rb.gravityScale);
             if(!down){
                 transform.position = transform.position + new Vector3(0,-0.5f,0);
             }
@@ -60,27 +67,20 @@ public class PlayerMovement : MonoBehaviour
         }else if(down){
             transform.localScale = new Vector3(transform.localScale.x, 1, transform.localScale.z);
             transform.position = transform.position + new Vector3(0,0.5f,0);
+            rb.gravityScale = 2f;
             down = false;
         }
     }
 
- //make sure u replace "floor" with your gameobject name.on which player is standing
- void OnCollisionEnter(Collision theCollision)
- {
-     if (theCollision.gameObject.name == "Sol1" || theCollision.gameObject.name == "Sol2")
-     {
-         isGrounded = true;
-
-     }
- }
- 
- //consider when character is jumping .. it will exit collision.
- void OnCollisionExit(Collision theCollision)
- {
-     if (theCollision.gameObject.name == "Sol1" ||theCollision.gameObject.name == "Sol2")
-     {
-         isGrounded = false;
-     }
+ void isFalling(){
+    if (GetComponent<Rigidbody2D>().velocity.y < -0.1)
+    {
+        isFallingBool = true;
+    }
+    else
+    {
+        isFallingBool = false;
+    }
  }
 
 }   
