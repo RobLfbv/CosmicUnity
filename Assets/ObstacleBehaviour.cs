@@ -4,15 +4,18 @@ using UnityEngine;
 
 public class ObstacleBehaviour : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
+    public String originalName;
+
+    void Update(){
+        if(transform.position.x <=-40 && gameObject.name!=originalName){
+            Destroy(gameObject);
+        }
     }
 
-    // Update is called once per frame
     void FixedUpdate()
     {
-        transform.position = transform.position + new Vector3(-0.1f,0,0);
+        if(!(gameObject.name == originalName && transform.position.x <=-50)){
+            transform.position = transform.position + new Vector3(-0.1f,0,0);
+        }
     }
 }

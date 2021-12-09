@@ -5,12 +5,12 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     bool down = false;
-    float charger = 0;
     bool discharge = false;
     float jumpForce;
     Rigidbody2D rb;
     float maxJump = 1.8f;
     float minJump = 1.3f;
+    float charger = 1.3f;
     float distToGround;
     bool isFallingBool;
 
@@ -45,21 +45,20 @@ public class PlayerMovement : MonoBehaviour
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
 
             discharge = false;
-            charger = 0f;
+            charger = minJump;
         }
-        if((Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.Q) || Input.GetKey(KeyCode.D)) && isFallingBool){
+        if((Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.Q) || Input.GetKey(KeyCode.D)) && isFallingBool && !down){
             rb.gravityScale = 0.5f;
-        }else{
+        }else if(!down){
             rb.gravityScale = 2f;
         }
 
     }
 
     void littleJack(){
-        if(Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow)){
+        if(Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow) && rb.gravityScale != 0.5f){
             transform.localScale = new Vector3(transform.localScale.x, 0.25f, transform.localScale.z);
-            rb.gravityScale = 3f;
-            Debug.Log(rb.gravityScale);
+            rb.gravityScale = 100f;
             if(!down){
                 transform.position = transform.position + new Vector3(0,-0.5f,0);
             }
