@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class ObstacleBehaviour : MonoBehaviour
 {
-    public String originalName;
+    public string originalName;
 
     void Update(){
-        if(transform.position.x <=-40 && gameObject.name!=originalName){
+        if(transform.position.x <=-40 && gameObject.name != originalName){
             Destroy(gameObject);
         }
     }
