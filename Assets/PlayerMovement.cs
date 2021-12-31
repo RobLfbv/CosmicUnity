@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -13,27 +14,62 @@ public class PlayerMovement : MonoBehaviour
     float charger = 1.3f;
     float distToGround;
     bool isFallingBool;
+    public HealthBar currentJump;
+    bool isOnGround;
+    private int score;
+    public Text text;
 
     void Start(){
         rb = this.gameObject.GetComponent<Rigidbody2D>();
         distToGround = GetComponent<BoxCollider2D>().bounds.extents.y;
+        currentJump.SetJump(minJump);
     }
     // Update is called once per frame
     void Update()
     {
-        if(Input.GetKey(KeyCode.Space) || Input.GetKey(KeyCode.Z)){
+        score++;
+        if(isOnGround && (Input.GetKey(KeyCode.Space) || Input.GetKey(KeyCode.Z))){
             charger += Time.deltaTime;
+            if (charger > maxJump)
+            {
+                currentJump.SetJump(maxJump);
+            }
+            else if (charger < minJump)
+            {
+                currentJump.SetJump(minJump);
+            }
+            else
+            {
+                currentJump.SetJump(charger);
+            }
         }
 
-        if(Input.GetKeyUp(KeyCode.Space) ||Input.GetKeyUp(KeyCode.Z)){
+        if (isOnGround && (Input.GetKeyUp(KeyCode.Space) ||Input.GetKeyUp(KeyCode.Z))){
             discharge = true;
+            currentJump.SetJump(minJump);
         }
-        
+        text.text = "" + score;
     }
 
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.tag == "Sol")
+        {
+            isOnGround = true;
+        }
+    }
+
+    void OnCollisionExit2D(Collision2D collision)
+    {
+        if (collision.gameObject.tag == "Sol")
+        {
+            isOnGround = false;
+        }
+    }
     void FixedUpdate(){
         littleJack();
         isFalling();
+
         if(discharge){
             if(charger>maxJump){
                 charger = maxJump;
