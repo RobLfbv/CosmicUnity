@@ -15,7 +15,7 @@ public class ObstacleBehaviour : MonoBehaviour
     void FixedUpdate()
     {
         if(!(gameObject.name == originalName && transform.position.x <=-50)){
-            transform.position = transform.position + new Vector3(-0.1f,0,0);
+            transform.position = transform.position + new Vector3(-0.05f,0,0);
         }
     }
 }

@@ -9,15 +9,19 @@ public class PlayerMovement : MonoBehaviour
     bool discharge = false;
     float jumpForce;
     Rigidbody2D rb;
-    float maxJump = 1.8f;
-    float minJump = 1.3f;
-    float charger = 1.3f;
+    float maxJump = 1.3f;
+    float minJump = 0.85f;
+    float charger = 0.85f;
     float distToGround;
     bool isFallingBool;
     public HealthBar currentJump;
     bool isOnGround;
     private int score;
     public Text text;
+
+    bool isJumping = false;
+
+    public Animator animator;
 
     void Start(){
         rb = this.gameObject.GetComponent<Rigidbody2D>();
@@ -28,6 +32,10 @@ public class PlayerMovement : MonoBehaviour
     void Update()
     {
         score++;
+        animator.SetBool("isOnGround",isOnGround);
+        animator.SetBool("isLittle",down);
+        animator.SetBool("discharge",isJumping);
+
         if(isOnGround && (Input.GetKey(KeyCode.Space) || Input.GetKey(KeyCode.Z))){
             charger += Time.deltaTime;
             if (charger > maxJump)
@@ -48,14 +56,26 @@ public class PlayerMovement : MonoBehaviour
             discharge = true;
             currentJump.SetJump(minJump);
         }
+
+        if(transform.position.y<=-7f){
+            transform.position = new Vector3(transform.position.x,-6.31f,transform.position.z);
+        }
         text.text = "" + score;
+    }
+
+    void OnCollisionStay2D(Collision2D collision){
+        if (collision.gameObject.tag == "Sol")
+        {
+            isOnGround = true;
+            isJumping = false;
+        }
     }
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.tag == "Sol")
+        if (collision.gameObject.tag == "Obstacle")
         {
-            isOnGround = true;
+            Debug.Log("BOOM");
         }
     }
 
@@ -64,6 +84,7 @@ public class PlayerMovement : MonoBehaviour
         if (collision.gameObject.tag == "Sol")
         {
             isOnGround = false;
+            isJumping = true;
         }
     }
     void FixedUpdate(){
@@ -93,16 +114,17 @@ public class PlayerMovement : MonoBehaviour
 
     void littleJack(){
         if(Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow) && rb.gravityScale != 0.5f){
-            transform.localScale = new Vector3(transform.localScale.x, 0.25f, transform.localScale.z);
-            rb.gravityScale = 100f;
+            GetComponent<BoxCollider2D>().size = new Vector2(0.28f,0.48f);
+            rb.gravityScale = 20f;
             if(!down){
                 transform.position = transform.position + new Vector3(0,-0.5f,0);
             }
             down = true;
         }else if(down){
-            transform.localScale = new Vector3(transform.localScale.x, 1, transform.localScale.z);
+            GetComponent<BoxCollider2D>().size = new Vector2(0.35f,0.7f);
+
             transform.position = transform.position + new Vector3(0,0.5f,0);
-            rb.gravityScale = 2f;
+            rb.gravityScale = 0.4f;
             down = false;
         }
     }
