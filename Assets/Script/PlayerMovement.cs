@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
+
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -12,26 +14,40 @@ public class PlayerMovement : MonoBehaviour
     float maxJump = 1.3f;
     float minJump = 0.85f;
     float charger = 0.85f;
+    float gravityDown = 15f;
+    float gravitySide = 0.1f;
+    float gravity = 2f;
     float distToGround;
     bool isFallingBool;
     public HealthBar currentJump;
     bool isOnGround;
     private int score;
     public Text text;
-
     bool isJumping = false;
 
     public Animator animator;
+
+    public bool isLaunched = false;
+    public bool isAlive = true;
+    public GameObject endScreen;
+
+    public TextMeshProUGUI textScoreDeath;
+    public TextMeshProUGUI highScore;
+
+    public AudioSource audioData;
 
     void Start(){
         rb = this.gameObject.GetComponent<Rigidbody2D>();
         distToGround = GetComponent<BoxCollider2D>().bounds.extents.y;
         currentJump.SetJump(minJump);
+        isAlive = true;
     }
     // Update is called once per frame
     void Update()
-    {
-        score++;
+    {   
+        if(isLaunched && isAlive){
+            score++;
+        }
         animator.SetBool("isOnGround",isOnGround);
         animator.SetBool("isLittle",down);
         animator.SetBool("discharge",isJumping);
@@ -60,7 +76,12 @@ public class PlayerMovement : MonoBehaviour
         if(transform.position.y<=-7f){
             transform.position = new Vector3(transform.position.x,-6.31f,transform.position.z);
         }
-        text.text = "" + score;
+        if(isLaunched && isAlive){
+            text.text = "" + score;
+        }
+        if(score%10000==0 && score!=0){
+            audioData.Play(0);
+        }
     }
 
     void OnCollisionStay2D(Collision2D collision){
@@ -75,7 +96,8 @@ public class PlayerMovement : MonoBehaviour
     {
         if (collision.gameObject.tag == "Obstacle")
         {
-            Debug.Log("BOOM");
+            isAlive = false;
+            onDeath();
         }
     }
 
@@ -105,9 +127,9 @@ public class PlayerMovement : MonoBehaviour
             charger = minJump;
         }
         if((Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.Q) || Input.GetKey(KeyCode.D)) && isFallingBool && !down){
-            rb.gravityScale = 0.5f;
+            rb.gravityScale = gravitySide;
         }else if(!down){
-            rb.gravityScale = 2f;
+            rb.gravityScale = gravity;
         }
 
     }
@@ -115,16 +137,15 @@ public class PlayerMovement : MonoBehaviour
     void littleJack(){
         if(Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow) && rb.gravityScale != 0.5f){
             GetComponent<BoxCollider2D>().size = new Vector2(0.28f,0.48f);
-            rb.gravityScale = 20f;
+            rb.gravityScale = gravityDown;
             if(!down){
                 transform.position = transform.position + new Vector3(0,-0.5f,0);
             }
             down = true;
         }else if(down){
             GetComponent<BoxCollider2D>().size = new Vector2(0.35f,0.7f);
-
             transform.position = transform.position + new Vector3(0,0.5f,0);
-            rb.gravityScale = 0.4f;
+            rb.gravityScale = gravity;
             down = false;
         }
     }
@@ -140,4 +161,56 @@ public class PlayerMovement : MonoBehaviour
     }
  }
 
+ void onDeath(){
+     endScreen.SetActive(true);
+     textScoreDeath.text = ""+score;
+     GetScore();
+     Time.timeScale = 0;
+ }
+
+    public void SendScore(string name){
+        SetScore(name);
+        GetScore();
+    }
+    void SetScore(string name){
+        /*for(int i = 1; i<=10; i++){
+            PlayerPrefs.SetInt("high"+i+"int",10-i);
+            PlayerPrefs.SetString("high"+i+"string",""+i);
+        }*/
+        if(score>PlayerPrefs.GetInt("high10int")){
+            if(score<PlayerPrefs.GetInt("high9int")){
+                PlayerPrefs.SetInt("high10int",score);
+                PlayerPrefs.SetString("high10string",name);
+                return;
+            }
+            for(int i = 1; i<9; i++){
+                if(score>PlayerPrefs.GetInt("high"+i+"int")){
+                    int scoreStock =PlayerPrefs.GetInt("high"+i+"int");
+                    string nameStock =PlayerPrefs.GetString("high"+i+"string");
+                    PlayerPrefs.SetInt("high"+i+"int",score);
+                    PlayerPrefs.SetString("high"+i+"string",name);
+                    for(int j = (i+1); j<=10; j++){
+                        int scoreStock2 = PlayerPrefs.GetInt("high"+j+"int");
+                        string nameStock2 = PlayerPrefs.GetString("high"+j+"string");
+                        PlayerPrefs.SetInt("high"+j+"int",scoreStock);
+                        PlayerPrefs.SetString("high"+j+"string",nameStock);
+                        scoreStock = scoreStock2;
+                        nameStock = nameStock2;
+                    }
+                    return;
+                }
+            }
+        }
+    }
+
+    void GetScore(){
+        highScore.text = "HIGHSCORES\n";
+        for(int i = 1; i<=10; i++){
+            if(i<10){
+                highScore.text+="0"+i+" "+ PlayerPrefs.GetString("high"+i+"string") +" : "+PlayerPrefs.GetInt("high"+i+"int")+"\n";
+            }else{
+                highScore.text+=i+" "+ PlayerPrefs.GetString("high"+i+"string") +" : "+PlayerPrefs.GetInt("high"+i+"int")+"\n";
+            }
+        }    
+    }
 }   

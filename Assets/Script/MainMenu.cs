@@ -7,13 +7,36 @@ using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
+    public GameObject UI;
+    public GameObject Menu;
+    
+    public GameObject Ennemy;
+    public GameObject EnnemyCreator;
+    public GameObject Fly;
+    public GameObject FlyCreator;
+    public GameObject FlyCreator2;
+
     public void PlayGame()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+        GameObject.Find("Perso").GetComponent<PlayerMovement>().isLaunched = true;
     }
     public void QuitGame()
     {
         Debug.Log("Quit");
         Application.Quit();
     }
+    void Update(){
+        if(Input.GetKeyDown(KeyCode.Return)){
+            PlayGame();
+            UI.SetActive(true);
+            Menu.SetActive(false);
+            Ennemy.SetActive(true);
+            EnnemyCreator.SetActive(true);
+            Fly.SetActive(true);
+            FlyCreator.SetActive(true);
+            FlyCreator2.SetActive(true);
+        }
+    }
+
+
 }

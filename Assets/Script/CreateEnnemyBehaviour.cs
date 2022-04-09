@@ -18,7 +18,8 @@ public class CreateEnnemyBehaviour : MonoBehaviour
     {
         float delay = Random.Range (minRespawn, maxRespawn);
        //Do stuff
-        Instantiate(copyOf, transform.position, transform.rotation);
+        Vector3 t = new Vector3(transform.position.x,transform.position.y,-1);
+        Instantiate(copyOf, t, transform.rotation);
         Invoke ("copy", delay);
     }
 }
