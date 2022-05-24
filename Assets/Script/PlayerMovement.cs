@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.Networking;
+using System.IO;
+using System;
 
 
 public class PlayerMovement : MonoBehaviour
@@ -35,6 +38,8 @@ public class PlayerMovement : MonoBehaviour
     public TextMeshProUGUI highScore;
 
     public AudioSource audioData;
+
+    private const string url = "https://comsicjackbase.000webhostapp.com/config.php";
 
     void Start(){
         rb = this.gameObject.GetComponent<Rigidbody2D>();
@@ -79,7 +84,7 @@ public class PlayerMovement : MonoBehaviour
         if(isLaunched && isAlive){
             text.text = "" + score;
         }
-        if(score%10000==0 && score!=0){
+        if(score%1000==0 && score!=0){
             audioData.Play(0);
         }
     }
@@ -138,13 +143,13 @@ public class PlayerMovement : MonoBehaviour
         if(Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow) && rb.gravityScale != 0.5f){
             GetComponent<BoxCollider2D>().size = new Vector2(0.28f,0.48f);
             rb.gravityScale = gravityDown;
-            if(!down){
+            /*if(!down){
                 transform.position = transform.position + new Vector3(0,-0.5f,0);
-            }
+            }*/
             down = true;
         }else if(down){
             GetComponent<BoxCollider2D>().size = new Vector2(0.35f,0.7f);
-            transform.position = transform.position + new Vector3(0,0.5f,0);
+            //transform.position = transform.position + new Vector3(0,0.5f,0);
             rb.gravityScale = gravity;
             down = false;
         }
@@ -164,19 +169,16 @@ public class PlayerMovement : MonoBehaviour
  void onDeath(){
      endScreen.SetActive(true);
      textScoreDeath.text = ""+score;
-     GetScore();
+     RetrieveScores();
      Time.timeScale = 0;
  }
 
     public void SendScore(string name){
-        SetScore(name);
-        GetScore();
+        //SetScore(name);
+        PostScores(name,score);
     }
     void SetScore(string name){
-        /*for(int i = 1; i<=10; i++){
-            PlayerPrefs.SetInt("high"+i+"int",10-i);
-            PlayerPrefs.SetString("high"+i+"string",""+i);
-        }*/
+        /*
         if(score>PlayerPrefs.GetInt("high10int")){
             if(score<PlayerPrefs.GetInt("high9int")){
                 PlayerPrefs.SetInt("high10int",score);
@@ -200,17 +202,101 @@ public class PlayerMovement : MonoBehaviour
                     return;
                 }
             }
-        }
+        }*/
     }
 
     void GetScore(){
-        highScore.text = "HIGHSCORES\n";
+        /*highScore.text = "HIGHSCORES\n";
         for(int i = 1; i<=10; i++){
             if(i<10){
                 highScore.text+="0"+i+" "+ PlayerPrefs.GetString("high"+i+"string") +" : "+PlayerPrefs.GetInt("high"+i+"int")+"\n";
             }else{
                 highScore.text+=i+" "+ PlayerPrefs.GetString("high"+i+"string") +" : "+PlayerPrefs.GetInt("high"+i+"int")+"\n";
             }
-        }    
+        }*/
+        List<Score> l = RetrieveScores();
+
+    }
+
+    public List<Score> RetrieveScores()
+    {
+        List<Score> scores = new List<Score>();
+        StartCoroutine(DoRetrieveScores(scores));
+        return scores;
+    }
+     IEnumerator DoRetrieveScores(List<Score> scores)
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("retrieve_leaderboard", "true");
+
+        using (UnityWebRequest www = UnityWebRequest.Post(url, form))
+        {
+            yield return www.SendWebRequest();
+
+            if (www.result == UnityWebRequest.Result.ConnectionError || www.result == UnityWebRequest.Result.ProtocolError)
+            {
+                Debug.Log(www.error);
+            }
+            else
+            {
+                Debug.Log("Successfully retrieved scores!");
+                string contents = www.downloadHandler.text;
+                using (StringReader reader = new StringReader(contents))
+                {
+                    string line;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        Score entry = new Score();
+                        entry.name = line;
+                        try
+                        {
+                            entry.score = Int32.Parse(reader.ReadLine());
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.Log("Invalid score: " + e);
+                            continue;
+                        }
+
+                        scores.Add(entry);
+                    }
+                }
+                highScore.text = "HIGHSCORES\n";
+                for(int i = 0; i<10; i++){
+                    highScore.text+=""+scores[i].name+" : "+scores[i].score+"\n";
+                }
+            }
+        }
+    }
+    public void PostScores(string name, int score)
+    {
+        StartCoroutine(DoPostScores(name, score));
+    }
+     IEnumerator DoPostScores(string name, int score)
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("post_leaderboard", "true");
+        form.AddField("name", name);
+        form.AddField("score", score);
+        using (UnityWebRequest www = UnityWebRequest.Post(url, form))
+        {
+            yield return www.SendWebRequest();
+
+            if (www.result == UnityWebRequest.Result.ConnectionError || www.result == UnityWebRequest.Result.ProtocolError)
+            {
+                Debug.Log(www.error);
+            }
+            else
+            {
+                Debug.Log(www.result);
+                RetrieveScores();
+                Debug.Log("Successfully posted score!");
+            }
+        }
+    }
+    public struct Score
+    {
+        public string name;
+        public int score;
     }
 }   

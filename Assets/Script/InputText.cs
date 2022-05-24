@@ -13,6 +13,8 @@ public class InputText : MonoBehaviour
     public TextMeshProUGUI warning1;
     public TextMeshProUGUI warning2;
 
+    public Boolean send = false;
+
 static string CleanInput(string strIn)
 {
     // Replace invalid characters with empty strings.
@@ -23,6 +25,9 @@ static string CleanInput(string strIn)
 //Called when Input changes
 public void inputValue()
 {
+    if(send){
+        return;
+    }
     String trueString = textInput.text.Substring(0,textInput.text.Length-1);
     if(trueString.Length>3){
         warning1.fontStyle = FontStyles.Underline;
@@ -33,6 +38,7 @@ public void inputValue()
         return;
     }
     GameObject.Find("Perso").GetComponent<PlayerMovement>().SendScore(trueString);
+    send = true;
 }
 
     

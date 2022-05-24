@@ -38,5 +38,19 @@ public class MainMenu : MonoBehaviour
         }
     }
 
+    public void HyperLink(string url){
+        Application.OpenURL(url);
+    }
+
+    public void appeared(GameObject bck){
+        Color32 stk =  bck.GetComponent<Image>().color;
+        bck.GetComponent<Image>().color =new Color32(stk.r,stk.g,stk.b,100);
+    }
+
+    public void disapear(GameObject bck){
+        Color32 stk =  bck.GetComponent<Image>().color;
+        bck.GetComponent<Image>().color =new Color32(stk.r,stk.g,stk.b,0);
+    }
+
 
 }
